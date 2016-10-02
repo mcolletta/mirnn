@@ -195,7 +195,7 @@ public class Neuron {
 
         if (!(neuron in xtrace)) {
             xtrace[neuron] = [:]
-            for(Connection i in inputs) { xtrace[neuron][i] = 0.0f }
+            for(Connection i : inputs) { xtrace[neuron][i] = 0.0f }
         }
 
         if (neuron in influenced)
