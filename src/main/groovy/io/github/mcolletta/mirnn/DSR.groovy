@@ -37,12 +37,12 @@ class DSR {
 	}
 
 	boolean checkOutput(List<Float> output, List<Float> targets) {
-		boolean retVal = true
-	    output.eachWithIndex { prediction, i ->
+		for(int i = 0; i < output.size(); i++) {
+			Float prediction = output[i]
 	        if (Math.round(prediction) != targets[i]) 
-	            retVal = false
+	            return false
 	    }
-	    return retVal
+	    return true
 	}
 
 	Network train() {
@@ -56,7 +56,7 @@ class DSR {
 		while (trials < iterations && (success < criterion || (trials % 1000) != 0)) {
 			List<Integer> sequence = []
 			int sequenceLength = length - prompts.size()
-			(0..sequenceLength-1).each {
+			for(int i = 0; i < sequenceLength; i++) {
         		sequence << distractors[random.nextInt(distractors.size())]
 			}
 		
@@ -65,7 +65,7 @@ class DSR {
 	        def positions = random.ints(0, sequenceLength).distinct().limit(prompts.size()).toArray() as List<Integer>
 	        positions.sort()
 
-	        (0..prompts.size()-1).each { i ->
+	        for(int i = 0; i < prompts.size(); i++) {
 	        	sequence[positions[i]] = targets[indexes[i]]
 	        	sequence << prompts[i]
 	        }
@@ -74,7 +74,7 @@ class DSR {
 		    int distractorsCorrect = 0
 		    int targetsCorrect = 0
 		    
-		    (0..length-1).each { i ->
+		    for(int i = 0; i < length; i++) {
 		        List<Float> input = (0..symbols-1).collect { 0.0f }		        	
 		        input[sequence[i]] = 1.0f
 

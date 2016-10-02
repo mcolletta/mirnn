@@ -11,6 +11,7 @@
 
 package io.github.mcolletta.mirnn
 
+import java.util.Map
 import groovy.transform.CompileStatic
 
 
@@ -48,7 +49,7 @@ public class Neuron {
         // Eq. 15
         state = self_connection.gain * self_connection.weight * state + bias
 
-        inputs.each { Connection i ->
+        for(Connection i : inputs) {
             state += i.from.activation * i.weight * i.gain
         }
 
@@ -59,15 +60,17 @@ public class Neuron {
         derivative = squash.derivate(state)
 
         // traces
-        inputs.each { Connection i ->
+        for(Connection i : inputs) {
             // elegibility trace - Eq. 17
             trace[i] = self_connection.gain * self_connection.weight * trace[i] + i.gain * i.from.activation
 
             // extended elegibility trace
-            influenced.each { Neuron k, List<Connection> gated_by_this ->
+            for(Map.Entry<Neuron,List<Connection>> e : influenced.entrySet()) {
+                Neuron k = e.getKey()
+                List<Connection> gated_by_this = e.getValue()
                 // the term in parenthesis of Eq. 18
                 float influence = (k.self_connection.gater == this) ? k.old_state : 0.0f
-                gated_by_this.each { Connection a ->
+                for(Connection a : gated_by_this) {
                     influence += a.weight * a.from.activation
                 }
                 // Eq. 18
@@ -76,7 +79,7 @@ public class Neuron {
         }
 
         //  update gains of gated connections
-        gated.each { Connection c ->
+        for(Connection c : gated) {
           c.gain = activation
         }
 
@@ -95,7 +98,7 @@ public class Neuron {
     void propagate(float rate) {
         float err = 0.0f
 
-        projected.each { Connection connection ->
+        for(Connection connection : projected) {
             Neuron neuron = connection.to
             // Eq. 21
             err += neuron.error.responsibility * connection.gain * connection.weight
@@ -106,9 +109,11 @@ public class Neuron {
 
         err = 0.0f
         // error responsibilities from all the connections gated by this neuron
-        influenced.each { Neuron neuron, List<Connection> gated_connections ->
-            float influence = (neuron.self_connection.gater == this) ? neuron.old_state : 0.0f 
-            gated_connections.each { Connection gc ->
+        for(Map.Entry<Neuron,List<Connection>> e : influenced.entrySet()) {
+            Neuron neuron = e.getKey()
+            List<Connection> gated_connections = e.getValue()
+            float influence = (neuron.self_connection.gater == this) ? neuron.old_state : 0.0f
+            for(Connection gc : gated_connections) {
                 influence += gc.weight * gc.from.activation
             }
             // sum of Eq. 22
@@ -125,10 +130,12 @@ public class Neuron {
     }
 
     void learn(float rate) {
-        inputs.each { Connection i ->
+        for(Connection i : inputs) {
             // Eq. 24
             float gradient = error.projected * trace[i]
-            influenced.each { neuron, gated_connections ->
+            for(Map.Entry<Neuron,List<Connection>> e : influenced.entrySet()) {
+                Neuron neuron = e.getKey()
+                List<Connection> gated_connections = e.getValue()
                 gradient += neuron.error.responsibility * xtrace[neuron][i]
             }
             i.weight += rate * gradient
@@ -172,7 +179,9 @@ public class Neuron {
                 upstream_prj << connection
             neuron.inputs << connection
             neuron.trace[connection] = 0.0f
-            neuron.xtrace.each { Neuron n, HashMap<Connection, Float> map ->                
+            for(Map.Entry<Neuron,HashMap<Connection, Float>> e : influenced.entrySet()) {
+                Neuron n = e.getKey()
+                HashMap<Connection, Float> map = e.getValue() 
                 map[connection] = 0.0f
             }
         }
@@ -186,7 +195,7 @@ public class Neuron {
 
         if (!(neuron in xtrace)) {
             xtrace[neuron] = [:]
-            inputs.each { Connection i -> xtrace[neuron][i] = 0.0f }
+            for(Connection i in inputs) { xtrace[neuron][i] = 0.0f }
         }
 
         if (neuron in influenced)

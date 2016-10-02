@@ -36,7 +36,7 @@ class Network {
 
 	List<Float> activate(List<Float> inp) {
 		input.activate(inp)
-		hidden.each { Layer l ->
+		for(Layer l : hidden) {
 			l.activate()
 		}
 		return output.activate()
@@ -44,7 +44,8 @@ class Network {
 
 	void propagate(List<Float> target, float rate=0.1f) {
 		output.propagate(target, rate)
-		hidden.reverseEach { Layer l ->
+		for (int i = hidden.size() - 1; i >= 0; i--) {
+			Layer l = hidden[i]
 			l.propagate(rate)
 		}
 	}

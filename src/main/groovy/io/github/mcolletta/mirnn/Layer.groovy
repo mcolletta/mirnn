@@ -19,7 +19,7 @@ class Layer {
 	List<Neuron> neurons = []
 
 	Layer(int size, float bias=0.0f) {
-		(1..size).each {
+		for(int i = 0; i < size; i++) {
 			Neuron neuron = new Neuron()
 			if (bias != 0.0f)
 				neuron.bias = bias
@@ -30,7 +30,8 @@ class Layer {
 	List<Float> activate(List<Float> input) {
 		assert input.size() == neurons.size()
 		List<Float> activations = []
-		neurons.eachWithIndex { Neuron neuron, int i ->
+		for(int i = 0; i < neurons.size(); i++) {
+			Neuron neuron = neurons[i]
 			activations << (neuron.activate(input[i]))
 		}
 		return activations
@@ -38,7 +39,8 @@ class Layer {
 
 	List<Float> activate() {
 		List<Float> activations = []
-		neurons.eachWithIndex { Neuron neuron, int i ->
+		for(int i = 0; i < neurons.size(); i++) {
+			Neuron neuron = neurons[i]
 			activations << (neuron.activate())
 		}
 		return activations
@@ -53,7 +55,10 @@ class Layer {
 	}
 
 	void propagate(float rate) {
-		neurons.reverseEach { Neuron neuron -> neuron.propagate(rate)}
+		for (int i = neurons.size() - 1; i >= 0; i--) {
+	        Neuron neuron = neurons[i]
+			neuron.propagate(rate)
+		}
 	}
 
 	LayerConnection project(Layer layer, boolean downstream=true) {
@@ -69,8 +74,8 @@ class Layer {
 		layerConnection.lctype = lctype
 		switch (lctype) {
 			case { it == LayerConnectionType.ALL_TO_ALL || it == LayerConnectionType.ALL_TO_ELSE }:
-				neurons.each { Neuron from ->
-					layer.neurons.each { Neuron to ->
+				for(Neuron from : neurons) {
+					for(Neuron to : layer.neurons) {
 						if (!(lctype == LayerConnectionType.ALL_TO_ELSE && from == to))
 							layerConnection.connections << from.project(to, downstream)
 					}
@@ -78,7 +83,8 @@ class Layer {
 				break
 			case LayerConnectionType.ONE_TO_ONE:
 				assert neurons.size() == layer.neurons.size()
-				neurons.eachWithIndex { Neuron from, int i ->
+				for(int i = 0; i < neurons.size(); i++) {
+					Neuron from = neurons[i]
 					Neuron to = layer.neurons[i]
 					layerConnection.connections << from.project(to, downstream)
 				}
@@ -95,9 +101,10 @@ class Layer {
 			case LayerGateType.INPUT:
 				Layer toLayer = layerConnection.to
 				assert toLayer.neurons.size() == neurons.size()
-				toLayer.neurons.eachWithIndex { Neuron  neuron, int i ->
+				for(int i = 0; i < toLayer.neurons.size(); i++) {
+					Neuron neuron = toLayer.neurons[i]
 					Neuron gater = neurons[i]
-					neuron.inputs.each { Connection gated ->
+					for(Connection gated : neuron.inputs) {
 						if (gated in connections)
 							gater.gate(gated)
 					}
@@ -106,9 +113,10 @@ class Layer {
 			case LayerGateType.OUTPUT:
 				Layer fromLayer = layerConnection.from
 				assert fromLayer.neurons.size() == neurons.size()
-				fromLayer.neurons.eachWithIndex { Neuron neuron, int i ->
+				for(int i = 0; i < fromLayer.neurons.size(); i++) {
+					Neuron neuron = fromLayer.neurons[i]
 					Neuron gater = neurons[i]
-					neuron.projected.each { Connection gated ->
+					for(Connection gated : neuron.projected) {
 						if (gated in connections)
 							gater.gate(gated)
 					}
@@ -116,7 +124,8 @@ class Layer {
 				break
 			case LayerGateType.ONE_TO_ONE:
 				assert connections.size() == neurons.size()
-				connections.eachWithIndex { Connection gated, int i ->
+				for(int i = 0; i < connections.size(); i++) {
+					 Connection gated = connections[i]
 					Neuron gater = neurons[i]
 					gater.gate(gated)
 				}
