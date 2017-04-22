@@ -3,8 +3,16 @@ sourceCompatibility = 8
 
 apply plugin: 'application'
 
+repositories {
+   flatDir {
+       dirs './libs'
+   }
+}
+
 dependencies {
-    compile localGroovy()
+    // compile localGroovy()
+    compile name: 'groovy-all-2.4.10-indy'
+    compile fileTree(dir: './libs', include: ['*.jar'])
 }
 
 sourceSets {
@@ -27,6 +35,13 @@ task runScript(type: JavaExec) {
     if (project.hasProperty('custom_arg')) {
         args project.getProperty('custom_arg')
     }
+}
+
+jar {
+    from 'LICENSE'
+    from 'README.md'
+    // from { ["LICENSE", "README.md"] }
+    manifest.attributes 'Created-By': 'Mirco Colletta'
 }
 
 defaultTasks 'runScript'

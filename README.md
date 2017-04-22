@@ -7,8 +7,10 @@ This library implements the algorithm described in the following paper:
 
 while the implementation is based on the [Synaptic](https://github.com/cazala/synaptic) javascript library.
 
+The library is bundled with [MirComp](https://github.com/mcolletta/mircomp), the framework for algorithmic and assisted music composition.
 
-Copyright (c) 2016 Mirco Colletta
+
+Copyright (c) 2016-2017 Mirco Colletta
 
 This library is released under the MIT License, see the LICENSE file for details.
 
